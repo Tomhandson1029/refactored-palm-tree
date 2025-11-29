@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Emotion & Readability Analyzer</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #f5f5f7;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+    }
+    .container {
+      max-width: 800px;
+      width: 100%;
+      padding: 24px;
+      margin: 24px;
+      background: #ffffff;
+      border-radius: 16px;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+    }
+    h1 {
+      margin-top: 0;
+      font-size: 26px;
+      text-align: center;
+    }
+    .subtitle {
+      text-align: center;
+      color: #555;
+      margin-bottom: 24px;
+    }
+    textarea {
+      width: 100%;
+      min-height: 120px;
+      padding: 12px;
+      font-size: 14px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      resize: vertical;
+      box-sizing: border-box;
+    }
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 500;
+    }
+    button {
+      margin-top: 16px;
+      padding: 10px 18px;
+      border-radius: 999px;
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+      background: #2563eb;
+      color: #fff;
+      font-size: 14px;
+    }
+    button:disabled {
+      opacity: 0.6;
+      cursor: default;
+    }
+    .row {
+      display: flex;
+      gap: 16px;
+      margin-top: 24px;
+      flex-wrap: wrap;
+    }
+    .card {
+      flex: 1 1 260px;
+      padding: 16px;
+      border-radius: 12px;
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+    }
+    .card h2 {
+      margin-top: 0;
+      font-size: 18px;
+      margin-bottom: 12px;
+    }
+    .emotions-list {
+      list-style: none;
+      padding-left: 0;
+      margin: 0;
+    }
+    .emotions-list li {
+      display: flex;
+      justify-content: space-between;
+      padding: 4px 0;
+      font-size: 14px;
+      border-bottom: 1px dashed #e5e7eb;
+    }
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 12px;
+      background: #eff6ff;
+      color: #1d4ed8;
+    }
+    .result-text {
+      white-space: pre-wrap;
+      font-size: 14px;
+      color: #111827;
+    }
+    .status {
+      margin-top: 8px;
+      font-size: 13px;
+      color: #6b7280;
+    }
+    .error {
+      color: #b91c1c;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Emotion & Readability Analyzer</h1>
+    <p class="subtitle">Enter a sentence to see its emotions and how easy it is to understand.</p>
+
+    <div>
+      <label for="inputText">Text</label>
+      <textarea id="inputText" placeholder="Type your text here..."></textarea>
+
+      <div style="margin-top: 8px; font-size: 13px; color: #6b7280;">
+        The model is based on RoBERTa fine-tuned on GoEmotions (multi-label emotion classification).
+      </div>
+
+      <button id="analyzeBtn">Analyze</button>
+      <div id="status" class="status"></div>
+    </div>
+
+    <div class="row">
+      <div class="card">
+        <h2>Emotions</h2>
+        <ul id="emotionsList" class="emotions-list"></ul>
+      </div>
+      <div class="card">
+        <h2>Readability</h2>
+        <div id="readabilityInfo"></div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top: 16px;">
+      <h2>Conclusion</h2>
+      <div id="conclusion" class="result-text"></div>
+    </div>
+  </div>
+
+  <script>
+    const API_URL = "http://localhost:8000/analyze"; // change if deployed elsewhere
+
+    const inputText = document.getElementById("inputText");
+    const analyzeBtn = document.getElementById("analyzeBtn");
+    const statusEl = document.getElementById("status");
+    const emotionsList = document.getElementById("emotionsList");
+    const readabilityInfo = document.getElementById("readabilityInfo");
+    const conclusionEl = document.getElementById("conclusion");
+
+    async function analyze() {
+      const text = inputText.value.trim();
+      if (!text) {
+        statusEl.textContent = "Please enter some text.";
+        return;
+      }
+
+      analyzeBtn.disabled = true;
+      statusEl.textContent = "Analyzing...";
+      emotionsList.innerHTML = "";
+      readabilityInfo.innerHTML = "";
+      conclusionEl.textContent = "";
+
+      try {
+        const resp = await fetch(API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text })
+        });
+
+        if (!resp.ok) {
+          throw new Error("API error: " + resp.status);
+        }
+
+        const data = await resp.json();
+
+        // Emotions
+        if (data.emotions && data.emotions.length > 0) {
+          data.emotions.forEach(e => {
+            const li = document.createElement("li");
+            const labelSpan = document.createElement("span");
+            labelSpan.textContent = e.label;
+            const scoreSpan = document.createElement("span");
+            scoreSpan.className = "badge";
+            scoreSpan.textContent = (e.score * 100).toFixed(1) + "%";
+            li.appendChild(labelSpan);
+            li.appendChild(scoreSpan);
+            emotionsList.appendChild(li);
+          });
+        } else {
+          emotionsList.innerHTML = "<li>No emotions detected.</li>";
+        }
+
+        // Readability
+        readabilityInfo.innerHTML = `
+          <div>Flesch Reading Ease: <strong>${data.readability_flesch.toFixed(2)}</strong></div>
+          <div>Flesch–Kincaid Grade: <strong>${data.readability_grade.toFixed(2)}</strong></div>
+          <div style="margin-top: 6px;">Interpretation: ${data.readability_description}</div>
+        `;
+
+        // Conclusion based on readability
+        conclusionEl.textContent =
+          "Based on the readability score, the " + data.emotion_clarity_comment + ".";
+
+        statusEl.textContent = "Done.";
+      } catch (err) {
+        console.error(err);
+        statusEl.textContent = "";
+        statusEl.classList.add("error");
+        statusEl.textContent = "Error: " + err.message;
+      } finally {
+        analyzeBtn.disabled = false;
+      }
+    }
+
+    analyzeBtn.addEventListener("click", analyze);
+  </script>
+</body>
+</html>

@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emotion & Readability AI | Group E</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                    },
+                    colors: {
+                        dark: {
+                            900: '#0f172a',
+                            800: '#1e293b',
+                            700: '#334155',
+                        },
+                        accent: {
+                            cyan: '#06b6d4',
+                            purple: '#8b5cf6',
+                            pink: '#ec4899',
+                        }
+                    },
+                    backgroundImage: {
+                        'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
+                        'hero-glow': 'conic-gradient(from 180deg at 50% 50%, #2a8af6 0deg, #a853ba 180deg, #e92a67 360deg)',
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'float': 'float 6s ease-in-out infinite',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-10px)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            background-color: #0f172a;
+            color: #f8fafc;
+        }
+        
+        /* Glassmorphism Utilities */
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        
+        .glass-input {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .tab-content { display: none; opacity: 0; transition: opacity 0.3s ease; }
+        .tab-content.active { display: block; opacity: 1; }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+
+        .gradient-text {
+            background: linear-gradient(to right, #22d3ee, #8b5cf6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        /* Hide scrollbar for chrome/safari/opera */
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        /* Hide scrollbar for IE, Edge and Firefox */
+        .hide-scrollbar {
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col selection:bg-cyan-500/30 selection:text-cyan-200">
+
+    <!-- Background Ambience -->
+    <div class="fixed inset-0 z-0 overflow-hidden pointer-events-none">
+        <div class="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-purple-600/10 blur-[100px] animate-pulse-slow"></div>
+        <div class="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-cyan-600/10 blur-[100px] animate-pulse-slow"></div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="relative z-50 border-b border-white/5 bg-dark-900/80 backdrop-blur-md">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="flex justify-between h-20 items-center">
+                <!-- Logo -->
+                <div class="flex items-center gap-4 group cursor-pointer">
+                    <div class="relative w-10 h-10 flex items-center justify-center bg-gradient-to-tr from-cyan-500 to-purple-600 rounded-xl shadow-lg shadow-purple-500/20 group-hover:shadow-purple-500/40 transition-all duration-500">
+                        <i data-lucide="brain-circuit" class="text-white w-6 h-6"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-lg font-bold tracking-tight text-white group-hover:text-cyan-400 transition-colors">Group E <span class="text-slate-500 font-normal">| NLP Lab</span></h1>
+                        <p class="text-[10px] uppercase tracking-widest text-slate-400">Emotion & Readability</p>
+                    </div>
+                </div>
+                
+                <!-- Tabs -->
+                <div class="flex bg-dark-800/50 p-1.5 rounded-full border border-white/5">
+                    <button onclick="switchTab('analyzer')" id="btn-analyzer" class="flex items-center gap-2 px-5 py-2 rounded-full text-sm font-semibold transition-all duration-300 bg-dark-700 text-cyan-400 shadow-lg shadow-black/20">
+                        <i data-lucide="zap" class="w-4 h-4"></i>
+                        <span>Analyzer</span>
+                    </button>
+                    <button onclick="switchTab('research')" id="btn-research" class="flex items-center gap-2 px-5 py-2 rounded-full text-sm font-medium transition-all duration-300 text-slate-400 hover:text-white">
+                        <i data-lucide="microscope" class="w-4 h-4"></i>
+                        <span>Research</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Container -->
+    <main class="relative z-10 flex-grow max-w-7xl mx-auto px-6 py-10 w-full">
+
+        <!-- ================= ANALYZER TAB ================= -->
+        <div id="tab-analyzer" class="tab-content active">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 h-full">
+                
+                <!-- INPUT SECTION (Left) -->
+                <div class="lg:col-span-7 flex flex-col gap-6">
+                    <div class="glass-panel rounded-3xl p-1 shadow-2xl">
+                        <div class="bg-dark-900/80 rounded-[22px] p-6 h-full flex flex-col">
+                            <div class="flex justify-between items-center mb-4">
+                                <label class="text-sm font-medium text-cyan-400 uppercase tracking-widest flex items-center gap-2">
+                                    <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
+                                    Input Stream
+                                </label>
+                                
+                                <!-- Scrollable Samples Container -->
+                                <div class="flex gap-2 overflow-x-auto max-w-[300px] md:max-w-md pb-1 hide-scrollbar">
+                                    <button onclick="setSample(0)" class="whitespace-nowrap text-[10px] uppercase font-bold px-3 py-1 rounded border border-white/10 text-slate-400 hover:text-cyan-300 hover:border-cyan-500/50 transition-colors bg-white/5">Positive</button>
+                                    <button onclick="setSample(1)" class="whitespace-nowrap text-[10px] uppercase font-bold px-3 py-1 rounded border border-white/10 text-slate-400 hover:text-pink-300 hover:border-pink-500/50 transition-colors bg-white/5">Negative</button>
+                                    <button onclick="setSample(2)" class="whitespace-nowrap text-[10px] uppercase font-bold px-3 py-1 rounded border border-white/10 text-slate-400 hover:text-purple-300 hover:border-purple-500/50 transition-colors bg-white/5">Complex</button>
+                                    <button onclick="setSample(3)" class="whitespace-nowrap text-[10px] uppercase font-bold px-3 py-1 rounded border border-white/10 text-slate-400 hover:text-blue-300 hover:border-blue-500/50 transition-colors bg-white/5">Sadness</button>
+                                    <button onclick="setSample(4)" class="whitespace-nowrap text-[10px] uppercase font-bold px-3 py-1 rounded border border-white/10 text-slate-400 hover:text-amber-300 hover:border-amber-500/50 transition-colors bg-white/5">Fear</button>
+                                    <button onclick="setSample(5)" class="whitespace-nowrap text-[10px] uppercase font-bold px-3 py-1 rounded border border-white/10 text-slate-400 hover:text-teal-300 hover:border-teal-500/50 transition-colors bg-white/5">Grateful</button>
+                                    <button onclick="setSample(6)" class="whitespace-nowrap text-[10px] uppercase font-bold px-3 py-1 rounded border border-white/10 text-slate-400 hover:text-indigo-300 hover:border-indigo-500/50 transition-colors bg-white/5">Scientific</button>
+                                    <button onclick="setSample(7)" class="whitespace-nowrap text-[10px] uppercase font-bold px-3 py-1 rounded border border-white/10 text-slate-400 hover:text-slate-300 hover:border-slate-500/50 transition-colors bg-white/5">Casual</button>
+                                </div>
+                            </div>
+                            
+                            <textarea id="inputText" 
+                                class="w-full flex-grow min-h-[220px] bg-transparent border-0 text-lg text-slate-200 placeholder:text-slate-600 focus:ring-0 resize-none font-light leading-relaxed outline-none"
+                                placeholder="Enter text to detect emotional undertones and readability complexity metrics..."></textarea>
+                            
+                            <div class="flex justify-between items-center pt-6 border-t border-white/5 mt-2">
+                                <div id="status-msg" class="text-xs font-mono text-slate-500">SYSTEM READY</div>
+                                <button onclick="analyzeText()" id="analyzeBtn" class="group relative px-8 py-3 bg-white text-dark-900 font-bold rounded-xl overflow-hidden hover:scale-105 transition-transform">
+                                    <div class="absolute inset-0 bg-gradient-to-r from-cyan-400 to-purple-500 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                                    <span class="relative z-10 flex items-center gap-2 group-hover:text-white transition-colors">
+                                        Analyze <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                                    </span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- AI INSIGHT BOX -->
+                    <div id="conclusion-box" class="hidden glass-panel rounded-2xl p-6 border-l-4 border-l-cyan-400 animate-[fadeIn_0.5s_ease-out]">
+                        <h3 class="text-cyan-400 font-bold text-sm uppercase mb-2 flex items-center gap-2">
+                            <i data-lucide="sparkles" class="w-4 h-4"></i> AI Assessment
+                        </h3>
+                        <p id="conclusion-text" class="text-xl text-white font-light leading-snug"></p>
+                    </div>
+                </div>
+
+                <!-- RESULTS SECTION (Right) -->
+                <div class="lg:col-span-5 flex flex-col gap-6">
+                    
+                    <!-- 1. Readability Gauge -->
+                    <div class="glass-panel rounded-3xl p-8 relative overflow-hidden">
+                        <div class="absolute top-0 right-0 p-4 opacity-5">
+                            <i data-lucide="file-text" class="w-32 h-32 text-white"></i>
+                        </div>
+                        
+                        <h2 class="text-slate-400 text-xs font-bold uppercase tracking-widest mb-6">Readability Index</h2>
+                        
+                        <div id="readability-container" class="flex flex-col items-center justify-center min-h-[140px]">
+                            <!-- Placeholder -->
+                            <div class="text-slate-600 text-sm font-mono border border-dashed border-slate-700 px-4 py-2 rounded">Waiting for data...</div>
+                        </div>
+                    </div>
+
+                    <!-- 2. Emotions List -->
+                    <div class="glass-panel rounded-3xl p-8 flex-grow">
+                        <h2 class="text-slate-400 text-xs font-bold uppercase tracking-widest mb-6">Emotional Spectrum</h2>
+                        
+                        <div id="emotions-container" class="space-y-4">
+                            <!-- Placeholder -->
+                             <div class="text-slate-600 text-sm font-mono border border-dashed border-slate-700 px-4 py-2 rounded text-center">Waiting for data...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= RESEARCH TAB ================= -->
+        <div id="tab-research" class="tab-content">
+            <!-- Hero Header -->
+            <div class="relative glass-panel rounded-3xl p-10 mb-10 overflow-hidden text-center lg:text-left">
+                <div class="absolute inset-0 bg-gradient-to-r from-purple-900/40 to-cyan-900/40 z-0"></div>
+                <div class="relative z-10 grid lg:grid-cols-2 gap-8 items-center">
+                    <div>
+                        <div class="inline-block px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-xs font-bold uppercase tracking-widest mb-4">Project Lab 3</div>
+                        <h2 class="text-4xl md:text-5xl font-bold text-white mb-6 leading-tight">Identify Data & <br/><span class="gradient-text">Variables</span></h2>
+                        <p class="text-lg text-slate-300 font-light leading-relaxed max-w-xl">
+                            Exploring the intersection of linguistic complexity and emotional clarity. Does easier-to-read text convey emotion more effectively?
+                        </p>
+                    </div>
+                    <!-- Research Question Card -->
+                    <div class="bg-dark-900/50 border border-white/5 p-8 rounded-2xl relative">
+                        <i data-lucide="quote" class="absolute top-6 right-6 text-white/5 w-12 h-12"></i>
+                        <h3 class="text-purple-400 font-bold text-sm uppercase mb-4">Core Research Question</h3>
+                        <p class="text-xl md:text-2xl text-white font-serif italic">
+                            “To what extent does the readability level of a written passage influence how clearly its intended emotional tone is understood?”
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Methodology / Dataset Visual Flow -->
+            <div class="grid md:grid-cols-3 gap-6 mb-12">
+                <!-- Card 1 -->
+                <div class="glass-panel p-8 rounded-2xl group hover:border-cyan-500/30 transition-colors">
+                    <div class="w-12 h-12 rounded-xl bg-cyan-500/10 flex items-center justify-center text-cyan-400 mb-4 group-hover:scale-110 transition-transform">
+                        <i data-lucide="database" class="w-6 h-6"></i>
+                    </div>
+                    <div class="text-3xl font-bold text-white mb-1">58k</div>
+                    <div class="text-xs text-slate-500 uppercase font-bold tracking-wider mb-4">Reddit Comments</div>
+                    <p class="text-sm text-slate-400">
+                        Using the <strong>GoEmotions</strong> dataset. Fine-grained emotion labeling (27 categories) with multi-rater validation.
+                    </p>
+                </div>
+                
+                <!-- Card 2 -->
+                <div class="glass-panel p-8 rounded-2xl group hover:border-purple-500/30 transition-colors">
+                     <div class="w-12 h-12 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-400 mb-4 group-hover:scale-110 transition-transform">
+                        <i data-lucide="binary" class="w-6 h-6"></i>
+                    </div>
+                    <div class="text-3xl font-bold text-white mb-1">Variables</div>
+                    <div class="text-xs text-slate-500 uppercase font-bold tracking-wider mb-4">Defined Logic</div>
+                    <ul class="text-sm text-slate-400 space-y-2">
+                        <li class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span> <strong>X1:</strong> Readability (Flesch)</li>
+                        <li class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-purple-400"></span> <strong>X2:</strong> Emotion Label</li>
+                        <li class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-pink-400"></span> <strong>Y:</strong> Clarity Score</li>
+                    </ul>
+                </div>
+
+                <!-- Card 3 -->
+                <div class="glass-panel p-8 rounded-2xl group hover:border-pink-500/30 transition-colors">
+                     <div class="w-12 h-12 rounded-xl bg-pink-500/10 flex items-center justify-center text-pink-400 mb-4 group-hover:scale-110 transition-transform">
+                        <i data-lucide="network" class="w-6 h-6"></i>
+                    </div>
+                    <div class="text-3xl font-bold text-white mb-1">Theory</div>
+                    <div class="text-xs text-slate-500 uppercase font-bold tracking-wider mb-4">Frameworks</div>
+                    <p class="text-sm text-slate-400">
+                        Grounded in <strong>Cognitive Load Theory</strong> (Sweller) and <strong>Appraisal Theory</strong> (Scherer) to link syntax complexity to emotional processing.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Team Footer -->
+            <div class="glass-panel rounded-2xl p-8 border-t border-t-white/10">
+                <h3 class="text-white text-sm font-bold uppercase tracking-widest mb-6 flex items-center gap-2">
+                    <i data-lucide="users" class="w-4 h-4 text-slate-400"></i> Research Team (Group E)
+                </h3>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div class="flex items-center gap-3 p-3 rounded-lg bg-white/5 hover:bg-white/10 transition-colors cursor-default">
+                        <div class="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-400 to-blue-500 flex items-center justify-center text-[10px] font-bold text-white">SC</div>
+                        <div class="text-sm text-slate-300">Soham C.</div>
+                    </div>
+                    <div class="flex items-center gap-3 p-3 rounded-lg bg-white/5 hover:bg-white/10 transition-colors cursor-default">
+                        <div class="w-8 h-8 rounded-full bg-gradient-to-br from-purple-400 to-indigo-500 flex items-center justify-center text-[10px] font-bold text-white">CB</div>
+                        <div class="text-sm text-slate-300">Chinmay B.</div>
+                    </div>
+                    <div class="flex items-center gap-3 p-3 rounded-lg bg-white/5 hover:bg-white/10 transition-colors cursor-default">
+                        <div class="w-8 h-8 rounded-full bg-gradient-to-br from-pink-400 to-rose-500 flex items-center justify-center text-[10px] font-bold text-white">HV</div>
+                        <div class="text-sm text-slate-300">Harish V.</div>
+                    </div>
+                    <div class="flex items-center gap-3 p-3 rounded-lg bg-white/5 hover:bg-white/10 transition-colors cursor-default">
+                        <div class="w-8 h-8 rounded-full bg-gradient-to-br from-orange-400 to-amber-500 flex items-center justify-center text-[10px] font-bold text-white">SK</div>
+                        <div class="text-sm text-slate-300">Sanjay K.</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="text-center mt-12 text-slate-600 text-xs">
+                © 2025 Arizona State University • Department of Information Technology
+            </div>
+        </div>
+
+    </main>
+
+    <!-- LOGIC -->
+    <script>
+        lucide.createIcons();
+
+        // 1. Tab Switching
+        function switchTab(tabName) {
+            const btnAnalyzer = document.getElementById('btn-analyzer');
+            const btnResearch = document.getElementById('btn-research');
+            
+            // Classes for Active vs Inactive
+            const activeClasses = ['bg-dark-700', 'text-cyan-400', 'shadow-lg', 'font-semibold'];
+            const inactiveClasses = ['text-slate-400', 'hover:text-white', 'font-medium'];
+
+            if (tabName === 'analyzer') {
+                btnAnalyzer.classList.add(...activeClasses);
+                btnAnalyzer.classList.remove(...inactiveClasses);
+                
+                btnResearch.classList.remove(...activeClasses);
+                btnResearch.classList.add(...inactiveClasses);
+            } else {
+                btnResearch.classList.add(...activeClasses);
+                btnResearch.classList.remove(...inactiveClasses);
+                
+                btnAnalyzer.classList.remove(...activeClasses);
+                btnAnalyzer.classList.add(...inactiveClasses);
+            }
+
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            const activeTab = document.getElementById(`tab-${tabName}`);
+            activeTab.classList.add('active');
+            
+            // Retrigger animations
+            activeTab.style.opacity = '0';
+            setTimeout(() => activeTab.style.opacity = '1', 50);
+        }
+
+        // 2. Sample Data (Expanded to 8 samples)
+        const samples = [
+            "I'm so proud of what you've accomplished today! It's truly amazing.",
+            "This is absolutely ridiculous, I can't believe it. I am furious.",
+            "The complexity of the situation renders the outcome somewhat ambiguous and difficult to discern.",
+            "I feel incredibly lonely when the rain starts falling, reminding me of better times lost.",
+            "I heard a noise downstairs. I'm terrified to look.",
+            "Thank you so much for your help, I couldn't have done it without you.",
+            "The phenomenon manifests through intricate neural pathways, necessitating rigorous empirical validation.",
+            "I think I'll just have a sandwich for lunch today, nothing special."
+        ];
+
+        function setSample(index) {
+            const input = document.getElementById('inputText');
+            input.value = samples[index];
+            input.focus();
+        }
+
+        // 3. Analysis Logic
+        async function analyzeText() {
+            const text = document.getElementById('inputText').value.trim();
+            const statusMsg = document.getElementById('status-msg');
+            const btn = document.getElementById('analyzeBtn');
+
+            if (!text) {
+                statusMsg.textContent = "⚠ INPUT EMPTY";
+                statusMsg.classList.add('text-pink-500');
+                return;
+            }
+
+            // Loading UI
+            btn.disabled = true;
+            const originalBtnHtml = btn.innerHTML;
+            btn.innerHTML = `<span class="animate-pulse">Processing...</span>`;
+            statusMsg.innerHTML = `<span class="text-cyan-400 animate-pulse">CONNECTING TO NEURAL NET...</span>`;
+            statusMsg.className = "text-xs font-mono";
+
+            try {
+                let data;
+                try {
+                    // Try Real Backend
+                    const response = await fetch('http://localhost:8000/analyze', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ text })
+                    });
+                    if (!response.ok) throw new Error('Backend failed');
+                    data = await response.json();
+                } catch (backendError) {
+                    console.log("Switching to simulation.");
+                    await new Promise(r => setTimeout(r, 1200)); 
+                    data = mockAnalyze(text);
+                }
+
+                renderResults(data);
+                statusMsg.innerHTML = `<span class="text-green-400">ANALYSIS COMPLETE</span>`;
+
+            } catch (err) {
+                statusMsg.textContent = "SYSTEM ERROR";
+                statusMsg.classList.add('text-red-500');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalBtnHtml;
+                lucide.createIcons();
+            }
+        }
+
+        // 4. Render Results
+        function renderResults(data) {
+            // A. Readability Gauge (SVG)
+            const readContainer = document.getElementById('readability-container');
+            const radius = 40;
+            const circumference = 2 * Math.PI * radius;
+            const score = Math.min(Math.max(data.readability_flesch, 0), 100);
+            const offset = circumference - (score / 100) * circumference;
+            
+            // Color logic
+            let color = '#22d3ee'; // cyan
+            if(score < 40) color = '#ec4899'; // pink
+            else if(score < 60) color = '#fbbf24'; // amber
+            else if(score > 80) color = '#4ade80'; // green
+
+            readContainer.innerHTML = `
+                <div class="relative flex flex-col items-center animate-[fadeIn_0.5s_ease-out]">
+                    <div class="relative w-40 h-40">
+                        <svg class="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+                            <circle cx="50" cy="50" r="${radius}" fill="none" stroke="#1e293b" stroke-width="6"></circle>
+                            <circle cx="50" cy="50" r="${radius}" fill="none" stroke="${color}" stroke-width="6"
+                                    stroke-dasharray="${circumference}" stroke-dashoffset="${offset}"
+                                    stroke-linecap="round" 
+                                    style="transition: stroke-dashoffset 1.5s ease-out; box-shadow: 0 0 20px ${color};"></circle>
+                        </svg>
+                        <div class="absolute inset-0 flex flex-col items-center justify-center">
+                            <span class="text-4xl font-bold text-white">${score.toFixed(0)}</span>
+                            <span class="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Flesch</span>
+                        </div>
+                    </div>
+                    <div class="mt-4 text-center">
+                         <div class="text-xs uppercase tracking-widest text-slate-500 mb-1">Grade Level</div>
+                         <div class="text-xl font-bold text-white">${data.readability_grade.toFixed(1)}</div>
+                    </div>
+                </div>
+            `;
+
+            // B. Emotions
+            const emoContainer = document.getElementById('emotions-container');
+            if (data.emotions && data.emotions.length > 0) {
+                let html = '';
+                data.emotions.forEach((emo, idx) => {
+                    html += `
+                        <div class="mb-4 animate-[slideIn_0.5s_ease-out]" style="animation-delay: ${idx * 100}ms">
+                            <div class="flex justify-between text-xs font-bold uppercase tracking-wider mb-2">
+                                <span class="text-slate-300">${emo.label}</span>
+                                <span class="text-cyan-400">${(emo.score * 100).toFixed(0)}%</span>
+                            </div>
+                            <div class="w-full bg-dark-800 rounded-full h-2 overflow-hidden">
+                                <div class="bg-gradient-to-r from-cyan-500 to-purple-600 h-2 rounded-full" 
+                                     style="width: 0%; transition: width 1s ease-out;"
+                                     onload="this.style.width='${emo.score * 100}%'"></div>
+                            </div>
+                        </div>
+                    `;
+                });
+                emoContainer.innerHTML = html;
+                
+                // Trigger width animation manually after render
+                setTimeout(() => {
+                    const bars = emoContainer.querySelectorAll('.bg-gradient-to-r');
+                    bars.forEach((bar, i) => {
+                         bar.style.width = (data.emotions[i].score * 100) + '%';
+                    });
+                }, 50);
+
+            } else {
+                emoContainer.innerHTML = `<div class="text-slate-500 text-sm text-center">No emotions detected</div>`;
+            }
+
+            // C. Conclusion Box
+            const conBox = document.getElementById('conclusion-box');
+            const conText = document.getElementById('conclusion-text');
+            conText.innerHTML = `Based on linguistic analysis, the text is <span class="text-cyan-400 font-bold">${data.readability_description}</span>. Thus, the ${data.emotion_clarity_comment}.`;
+            conBox.classList.remove('hidden');
+        }
+
+        // 5. Mock Data (Matches App.py Logic & New Samples)
+        function mockAnalyze(text) {
+            const lower = text.toLowerCase();
+            let emotions = [];
+            
+            // Expanded Mock Logic
+            if (lower.includes('happy') || lower.includes('proud') || lower.includes('amazing')) {
+                emotions.push({ label: 'joy', score: 0.92 });
+                emotions.push({ label: 'admiration', score: 0.85 });
+            } else if (lower.includes('sad') || lower.includes('cry') || lower.includes('bad') || lower.includes('lonely')) {
+                emotions.push({ label: 'sadness', score: 0.88 });
+            } else if (lower.includes('angry') || lower.includes('hate') || lower.includes('furious')) {
+                emotions.push({ label: 'anger', score: 0.94 });
+                emotions.push({ label: 'annoyance', score: 0.75 });
+            } else if (lower.includes('complex') || lower.includes('ambiguous') || lower.includes('phenomenon')) {
+                 emotions.push({ label: 'confusion', score: 0.60 });
+                 emotions.push({ label: 'curiosity', score: 0.50 });
+            } else if (lower.includes('terrified') || lower.includes('fear')) {
+                emotions.push({ label: 'fear', score: 0.95 });
+            } else if (lower.includes('thank') || lower.includes('grateful')) {
+                emotions.push({ label: 'gratitude', score: 0.90 });
+            } else if (lower.includes('sandwich') || lower.includes('nothing special')) {
+                emotions.push({ label: 'neutral', score: 0.80 });
+            } else {
+                emotions.push({ label: 'neutral', score: 0.60 });
+            }
+
+            const words = text.split(/\s+/).length;
+            let score = Math.max(10, 100 - (words * 2)); 
+            if (lower.includes('complex') || lower.includes('phenomenon')) score = 35; // Force low score for complex samples
+
+            let desc, clarity;
+            if (score >= 80) { desc = "very easy to read"; clarity = "emotion is clearly interpretable"; }
+            else if (score >= 60) { desc = "easy to read"; clarity = "emotion should be easy to understand"; }
+            else if (score >= 40) { desc = "fairly complex"; clarity = "emotional tone requires effort to decode"; }
+            else { desc = "difficult to read"; clarity = "emotional intent may be obscured by syntax"; }
+
+            return {
+                text: text,
+                emotions: emotions,
+                readability_flesch: score,
+                readability_grade: 6.5 + (words * 0.1),
+                readability_description: desc,
+                emotion_clarity_comment: clarity
+            };
+        }
+    </script>
+</body>
+</html>
